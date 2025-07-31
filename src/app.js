@@ -4,83 +4,60 @@ import "./app.css";
 function App() {
   const [url, setUrl] = useState("");
   const [products, setProducts] = useState([]);
-  const [manualPrice, setManualPrice] = useState("");
 
   const fetchProductInfo = async () => {
+    if (!url) return;
+
     try {
-      const response = await fetch(
-        `https://api.microlink.io?url=${encodeURIComponent(url)}&meta=true`
-      );
+      const response = await fetch(`https://api.microlink.io/?url=${encodeURIComponent(url)}`);
       const data = await response.json();
 
-      if (data.status === "success") {
-        const meta = data.data;
-        const newProduct = {
-          title: meta.title || "Untitled Product",
-          image: meta.image?.url || "",
-          price:
-            meta.price ||
-            meta.data?.price ||
-            meta.data?.product?.price ||
-            "", // fallback: leave blank so we can show manual input
-          url,
-        };
+      const product = {
+        title: data.data.title || "No Title",
+        description: data.data.description || "No Description",
+        image: data.data.image?.url || "",
+        price: "Unknown", // Placeholder for price
+        url,
+      };
 
-        setProducts([...products, newProduct]);
-        setManualPrice(""); // reset after add
-        setUrl("");
-      } else {
-        alert("Failed to fetch product info.");
-      }
+      setProducts([...products, product]);
+      setUrl("");
     } catch (error) {
       console.error("Error fetching product info:", error);
-      alert("An error occurred. Check the console for details.");
     }
   };
 
-  const updateManualPrice = (index, value) => {
-    const updated = [...products];
-    updated[index].price = value;
-    setProducts(updated);
+  const handleDelete = (index) => {
+    const newProducts = [...products];
+    newProducts.splice(index, 1);
+    setProducts(newProducts);
   };
 
   return (
     <div className="app">
       <h1>🏍️ Motorcycle Budget Builder</h1>
-      <input
-        type="text"
-        placeholder="Paste product link here"
-        value={url}
-        onChange={(e) => setUrl(e.target.value)}
-      />
-      <button onClick={fetchProductInfo}>Fetch Product Info</button>
 
-      <div className="product-list">
+      <div className="input-container">
+        <input
+          type="text"
+          placeholder="Paste product link here"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+        />
+        <button onClick={fetchProductInfo}>Fetch Info</button>
+      </div>
+
+      <div className="products-container">
         {products.map((product, index) => (
           <div className="product-card" key={index}>
-            {product.image && (
-              <img src={product.image} alt={product.title} />
-            )}
+            {product.image && <img src={product.image} alt={product.title} />}
             <h3>{product.title}</h3>
-            <p>
-              Price:{" "}
-              {product.price ? (
-                `$${product.price}`
-              ) : (
-                <>
-                  <input
-                    type="number"
-                    placeholder="Enter price"
-                    value={manualPrice}
-                    onChange={(e) => setManualPrice(e.target.value)}
-                    onBlur={() => updateManualPrice(index, manualPrice)}
-                  />
-                </>
-              )}
-            </p>
+            <p>{product.description}</p>
             <a href={product.url} target="_blank" rel="noopener noreferrer">
               View Product
             </a>
+            <p className="price">{product.price}</p>
+            <button className="delete-btn" onClick={() => handleDelete(index)}>🗑️ Remove</button>
           </div>
         ))}
       </div>
@@ -88,4 +65,4 @@ function App() {
   );
 }
 
-export default App;
+export default App;      
