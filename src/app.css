@@ -75,3 +75,57 @@ li span {
 li strong {
   color: #ffd700;
 }
+
+.app {
+  background-color: #1e1e1e;
+  color: #ffffff;
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+h1 {
+  color: #00e0ff;
+}
+
+input[type="text"],
+input[type="number"] {
+  padding: 10px;
+  margin-right: 10px;
+  width: 60%;
+  max-width: 400px;
+  border: none;
+  border-radius: 5px;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #00e0ff;
+  border: none;
+  border-radius: 5px;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #00c0e0;
+}
+
+.product-card {
+  background-color: #2e2e2e;
+  padding: 15px;
+  margin-top: 20px;
+  border-radius: 10px;
+  max-width: 500px;
+}
+
+.product-card img {
+  max-width: 100%;
+  border-radius: 5px;
+}
+
+.price-input {
+  margin-top: 10px;
+  color: #ffffff;
+}
