@@ -1,127 +1,104 @@
 import React, { useState } from "react";
 import "./app.css";
 
-function app() {
-  const [gear, setGear] = useState([]);
-  const [newItem, setNewItem] = useState({
-    name: "",
-    price: "",
-    category: "",
-    image: "",
-    link: ""
-  });
-  const [isLoading, setIsLoading] = useState(false);
+function App() {
+  const [products, setProducts] = useState([]);
+  const [linkInput, setLinkInput] = useState("");
+  const [build, setBuild] = useState([]);
 
-  const handleChange = (e) => {
-    setNewItem({
-      ...newItem,
-      [e.target.name]: e.target.value
-    });
-  };
+  const fetchProductData = async () => {
+    if (!linkInput) return;
 
-  const fetchPreview = async () => {
-    if (!newItem.link) return;
-    setIsLoading(true);
     try {
-      const res = await fetch(
-        `https://api.microlink.io/?url=${encodeURIComponent(newItem.link)}`
+      const response = await fetch(
+        `https://api.microlink.io/?url=${encodeURIComponent(linkInput)}`
       );
-      const data = await res.json();
-      const meta = data.data;
-      setNewItem((prev) => ({
-        ...prev,
-        name: meta.title || "",
-        image: meta.image?.url || "",
-        price: meta.price?.value || ""
-      }));
-    } catch (err) {
-      console.error("Failed to fetch product info:", err);
-    } finally {
-      setIsLoading(false);
+      const result = await response.json();
+
+      if (result.status === "success") {
+        const data = result.data;
+        const product = {
+          title: data.title || "Unnamed Product",
+          description: data.description || "",
+          image: data.image?.url || "",
+          price: data.price || "Unknown",
+          category: "Uncategorized",
+          link: linkInput,
+        };
+        setProducts((prev) => [...prev, product]);
+        setLinkInput("");
+      } else {
+        alert("Failed to fetch product data.");
+      }
+    } catch (error) {
+      alert("Error fetching data.");
+      console.error(error);
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!newItem.name || !newItem.price || !newItem.category) return;
-    setGear([...gear, { ...newItem, price: parseFloat(newItem.price) }]);
-    setNewItem({
-      name: "",
-      price: "",
-      category: "",
-      image: "",
-      link: ""
-    });
+  const addToBuild = (product) => {
+    setBuild((prev) => [...prev, product]);
   };
 
-  const total = gear.reduce((sum, item) => sum + item.price, 0);
+  const removeFromBuild = (index) => {
+    const updated = [...build];
+    updated.splice(index, 1);
+    setBuild(updated);
+  };
+
+  const totalBuildCost = () => {
+    return build.reduce((acc, item) => {
+      const num = parseFloat(item.price.replace(/[^0-9.]/g, ""));
+      return acc + (isNaN(num) ? 0 : num);
+    }, 0).toFixed(2);
+  };
 
   return (
     <div className="app">
-      <h1>🏍️ Motorcycle Gear Budget App</h1>
-      <form onSubmit={handleSubmit}>
-        <input
-          name="link"
-          value={newItem.link}
-          onChange={handleChange}
-          placeholder="Paste product link"
-        />
-        <button type="button" onClick={fetchPreview}>
-          {isLoading ? "Fetching..." : "Fetch Product Info"}
-        </button>
+      <h1>🏍️ Motorcycle Budget Builder</h1>
 
+      <div className="link-input">
         <input
-          name="name"
-          value={newItem.name}
-          onChange={handleChange}
-          placeholder="Item Name"
+          type="text"
+          value={linkInput}
+          placeholder="Paste product link..."
+          onChange={(e) => setLinkInput(e.target.value)}
         />
-        <input
-          name="price"
-          value={newItem.price}
-          onChange={handleChange}
-          placeholder="Price"
-          type="number"
-          step="0.01"
-        />
-        <input
-          name="category"
-          value={newItem.category}
-          onChange={handleChange}
-          placeholder="Category (Helmet, Gloves, etc)"
-        />
-        <button type="submit">Add Item</button>
-      </form>
+        <button onClick={fetchProductData}>Fetch Product Info</button>
+      </div>
 
-      <h2>Gear List</h2>
-      <ul>
-        {gear.map((item, index) => (
-          <li key={index}>
-            <div>
-              {item.image && (
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  style={{ width: "100px", marginBottom: "5px" }}
-                />
+      <div className="products">
+        <h2>🛒 Products</h2>
+        <div className="grid">
+          {products.map((product, idx) => (
+            <div className="card" key={idx}>
+              {product.image && (
+                <img src={product.image} alt={product.title} />
               )}
-              <strong>{item.name}</strong> (${item.price.toFixed(2)}) –{" "}
-              {item.category}
-              {item.link && (
-                <div>
-                  <a href={item.link} target="_blank" rel="noreferrer">
-                    View Product
-                  </a>
-                </div>
-              )}
+              <h3>{product.title}</h3>
+              <p>{product.price}</p>
+              <button onClick={() => addToBuild(product)}>Add to Build</button>
             </div>
-          </li>
-        ))}
-      </ul>
+          ))}
+        </div>
+      </div>
 
-      <h3>Total: ${total.toFixed(2)}</h3>
+      <div className="build">
+        <h2>🧰 Your Build</h2>
+        <div className="grid">
+          {build.map((item, idx) => (
+            <div className="card" key={idx}>
+              {item.image && <img src={item.image} alt={item.title} />}
+              <h3>{item.title}</h3>
+              <p>{item.price}</p>
+              <button onClick={() => removeFromBuild(idx)}>Remove</button>
+            </div>
+          ))}
+        </div>
+        <h3>Total: ${totalBuildCost()}</h3>
+      </div>
     </div>
   );
 }
 
-export default app;
+export default App;
