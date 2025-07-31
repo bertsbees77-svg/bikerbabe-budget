@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./App.css";
+import "./app.css";
 
 function app() {
   const [gear, setGear] = useState([]);
@@ -66,4 +66,4 @@ function app() {
   );
 }
 
-export default App;
+export default app;
