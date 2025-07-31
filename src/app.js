@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./app.css";
 
-function App() {
+function app() {
   const [gear, setGear] = useState([]);
   const [newItem, setNewItem] = useState({
     name: "",
@@ -124,4 +124,4 @@ function App() {
   );
 }
 
-export default App;
+export default app;
