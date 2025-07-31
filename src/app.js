@@ -74,11 +74,12 @@ function App() {
               <div className="price-input">
                 <label>💵 Price:</label>
                 <input
-                  type="text"
-                  placeholder="Enter price"
-                  value={product.price}
-                  onChange={(e) => handlePriceChange(index, e.target.value)}
-                />
+  type="text"
+  placeholder="Enter price"
+  value={products[index].price || ''}
+  onChange={(e) => handlePriceChange(index, e.target.value)}
+  inputMode="decimal"
+/>
               </div>
             )}
 
