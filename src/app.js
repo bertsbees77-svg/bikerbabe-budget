@@ -2,100 +2,87 @@ import React, { useState } from "react";
 import "./app.css";
 
 function App() {
+  const [url, setUrl] = useState("");
   const [products, setProducts] = useState([]);
-  const [linkInput, setLinkInput] = useState("");
-  const [build, setBuild] = useState([]);
+  const [manualPrice, setManualPrice] = useState("");
 
-  const fetchProductData = async () => {
-    if (!linkInput) return;
-
+  const fetchProductInfo = async () => {
     try {
       const response = await fetch(
-        `https://api.microlink.io/?url=${encodeURIComponent(linkInput)}`
+        `https://api.microlink.io?url=${encodeURIComponent(url)}&meta=true`
       );
-      const result = await response.json();
+      const data = await response.json();
 
-      if (result.status === "success") {
-        const data = result.data;
-        const product = {
-          title: data.title || "Unnamed Product",
-          description: data.description || "",
-          image: data.image?.url || "",
-          price: data.price || "Unknown",
-          category: "Uncategorized",
-          link: linkInput,
+      if (data.status === "success") {
+        const meta = data.data;
+        const newProduct = {
+          title: meta.title || "Untitled Product",
+          image: meta.image?.url || "",
+          price:
+            meta.price ||
+            meta.data?.price ||
+            meta.data?.product?.price ||
+            "", // fallback: leave blank so we can show manual input
+          url,
         };
-        setProducts((prev) => [...prev, product]);
-        setLinkInput("");
+
+        setProducts([...products, newProduct]);
+        setManualPrice(""); // reset after add
+        setUrl("");
       } else {
-        alert("Failed to fetch product data.");
+        alert("Failed to fetch product info.");
       }
     } catch (error) {
-      alert("Error fetching data.");
-      console.error(error);
+      console.error("Error fetching product info:", error);
+      alert("An error occurred. Check the console for details.");
     }
   };
 
-  const addToBuild = (product) => {
-    setBuild((prev) => [...prev, product]);
-  };
-
-  const removeFromBuild = (index) => {
-    const updated = [...build];
-    updated.splice(index, 1);
-    setBuild(updated);
-  };
-
-  const totalBuildCost = () => {
-    return build.reduce((acc, item) => {
-      const num = parseFloat(item.price.replace(/[^0-9.]/g, ""));
-      return acc + (isNaN(num) ? 0 : num);
-    }, 0).toFixed(2);
+  const updateManualPrice = (index, value) => {
+    const updated = [...products];
+    updated[index].price = value;
+    setProducts(updated);
   };
 
   return (
     <div className="app">
       <h1>🏍️ Motorcycle Budget Builder</h1>
+      <input
+        type="text"
+        placeholder="Paste product link here"
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
+      />
+      <button onClick={fetchProductInfo}>Fetch Product Info</button>
 
-      <div className="link-input">
-        <input
-          type="text"
-          value={linkInput}
-          placeholder="Paste product link..."
-          onChange={(e) => setLinkInput(e.target.value)}
-        />
-        <button onClick={fetchProductData}>Fetch Product Info</button>
-      </div>
-
-      <div className="products">
-        <h2>🛒 Products</h2>
-        <div className="grid">
-          {products.map((product, idx) => (
-            <div className="card" key={idx}>
-              {product.image && (
-                <img src={product.image} alt={product.title} />
+      <div className="product-list">
+        {products.map((product, index) => (
+          <div className="product-card" key={index}>
+            {product.image && (
+              <img src={product.image} alt={product.title} />
+            )}
+            <h3>{product.title}</h3>
+            <p>
+              Price:{" "}
+              {product.price ? (
+                `$${product.price}`
+              ) : (
+                <>
+                  <input
+                    type="number"
+                    placeholder="Enter price"
+                    value={manualPrice}
+                    onChange={(e) => setManualPrice(e.target.value)}
+                    onBlur={() => updateManualPrice(index, manualPrice)}
+                  />
+                </>
               )}
-              <h3>{product.title}</h3>
-              <p>{product.price}</p>
-              <button onClick={() => addToBuild(product)}>Add to Build</button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="build">
-        <h2>🧰 Your Build</h2>
-        <div className="grid">
-          {build.map((item, idx) => (
-            <div className="card" key={idx}>
-              {item.image && <img src={item.image} alt={item.title} />}
-              <h3>{item.title}</h3>
-              <p>{item.price}</p>
-              <button onClick={() => removeFromBuild(idx)}>Remove</button>
-            </div>
-          ))}
-        </div>
-        <h3>Total: ${totalBuildCost()}</h3>
+            </p>
+            <a href={product.url} target="_blank" rel="noopener noreferrer">
+              View Product
+            </a>
+          </div>
+        ))}
       </div>
     </div>
   );
