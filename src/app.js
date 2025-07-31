@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import "./App.css";
+import "./app.css";
 
-function App() {
+function app() {
   const [gear, setGear] = useState([]);
   const [newItem, setNewItem] = useState({
     name: "",
